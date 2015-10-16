@@ -4,6 +4,7 @@ import(
   "time"
   "fmt"
   "github.com/jinzhu/gorm"
+  "net/url"
 )
 
 type Twitter struct {
@@ -17,8 +18,14 @@ type Twitter struct {
 }
 
 func (twitter *Twitter) poller(){
-  api := connection(twitter)
-  if result, err := api.GetUserTimeline(nil); err != nil{
+  api   := connection(twitter)
+  opts  := url.Values{}
+
+  if twitter.SinceId != 0{
+    opts.Set("since_id", fmt.Sprintf("%d",twitter.SinceId))
+  }
+
+  if result, err := api.GetUserTimeline(opts); err != nil{
     panic(err)
   } else {
     if len(result) > 0 {
