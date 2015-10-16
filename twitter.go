@@ -16,21 +16,29 @@ type Twitter struct {
   OauthTokenSecret string
 }
 
-func (t *Twitter) poller(){
-  api := connection(t)
+func (twitter *Twitter) poller(){
+  api := connection(twitter)
   if result, err := api.GetUserTimeline(nil); err != nil{
     panic(err)
   } else {
-    for _, t := range result{ 
-      fmt.Printf("Inserting [%d] message: %s", t.Id, t.Text)
-      db.Create(&Tweet{Message: t.Text, MessageId: t.Id})
+    if len(result) > 0 {
+      
+      twitter.SinceId       = result[0].Id
+      twitter.LastCheckedAt = time.Now()
+
+      for _, tweet := range result{ 
+        fmt.Printf("Inserting [%d] message: %s", tweet.Id, tweet.Text)
+        db.Create(&Tweet{Message: tweet.Text, MessageId: tweet.Id})
+      }
+
+      db.Save(twitter)
     }
   }
 }
 
 func Account(id int64) *Twitter{
   var account Twitter
-  db.Find(&account)
+  db.Find(&account, id)
 
   return &account
 }
