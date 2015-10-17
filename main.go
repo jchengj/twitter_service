@@ -2,12 +2,15 @@ package main
 
 import (
   "fmt"
+  "time"
+  "sync"
   "github.com/ChimeraCoder/anaconda"
   "github.com/jinzhu/gorm"
   _ "github.com/go-sql-driver/mysql"  
 )
 
 var db gorm.DB
+var wg sync.WaitGroup
 
 func init() {
   adapter     := "mysql"
@@ -29,8 +32,21 @@ func connection(t *Twitter) *anaconda.TwitterApi{
 
 func main(){
   fmt.Println("Starting Twitter Service")
-
-  account := Account(1)
-  //api.PostTweet("From GO Service", nil)
-  account.poller() 
+  for {
+      accounts := make([]Twitter, 1)
+      db.Where("last_checked_at < ?", time.Now().Add(-time.Hour)).Find(&accounts)
+      if len(accounts) > 0{
+        wg.Add(len(accounts))
+        fmt.Println("Started Processing")
+        for _, account := range accounts{
+          go func(){
+            account.poll()
+            wg.Done()
+          }() 
+        }
+        fmt.Println("Waiting for all goroutines")
+        wg.Wait()
+        fmt.Println("Finished Processing")
+      }
+  }
 }

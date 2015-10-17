@@ -17,7 +17,7 @@ type Twitter struct {
   OauthTokenSecret string
 }
 
-func (twitter *Twitter) poller(){
+func (twitter *Twitter) poll(){
   api   := connection(twitter)
   opts  := url.Values{}
 
@@ -41,12 +41,5 @@ func (twitter *Twitter) poller(){
       db.Save(twitter)
     }
   }
-}
-
-func Account(id int64) *Twitter{
-  var account Twitter
-  db.Find(&account, id)
-
-  return &account
 }
 
