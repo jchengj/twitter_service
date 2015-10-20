@@ -41,12 +41,12 @@ func (twitter *Twitter) poll(){
       db.Save(twitter)
     }
   }
+}
 
-  func (twitter *Twitter) Send(values *[]string){
-    api := connection(twitter)
-    for _, v := range values{
-      api.PostTweet(v)
-    }
+func (twitter *Twitter) Send(values *[]string){
+  api := connection(twitter)
+  for _, v := range *values{
+    api.PostTweet(v, nil)
   }
 }
 

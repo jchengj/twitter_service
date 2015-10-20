@@ -5,7 +5,7 @@ import (
   "log"
   "time"
   "sync"
-  "encoding/json"
+  "strings"
   "gopkg.in/redis.v3"
   "github.com/ChimeraCoder/anaconda"
   "github.com/jinzhu/gorm"
@@ -61,23 +61,23 @@ func connection(t *Twitter) *anaconda.TwitterApi{
 func send(){
   var wg sync.WaitGroup
 
-  if tweets, err = rClient.Keys("*").Result(); err == nil {
+  if tweets, err := rClient.Keys("*").Result(); err == nil {
     accounts := make(map[int][]string)
 
     for _, tweet := range tweets{
       var s string
-      strings.split(s, ":")
-      append(accounts[s[2]], rClient.Get(tweet).Val())
+      strings.Split(s, ":")
+      accounts[int(s[2])] = append(accounts[int(s[2])], rClient.Get(tweet).Val())
     } 
 
     wg.Add(len(accounts))
     for key, val := range accounts{
       go func(){
-        var account Account
+        var account Twitter
         db.Find(&account, int(key))
-        account.Send(val)
+        account.Send(&val)
         wg.Done()
-      }
+      }()
     }
     wg.Wait()
     rClient.FlushDb()
@@ -89,9 +89,12 @@ func send(){
 
 // --- pull tweets from twitter and save to db --- //
 func receive(){
+  var wg sync.WaitGroup
+
   accounts := make([]Twitter, 1)
   db.Where("last_checked_at < ?", time.Now().Add(-time.Hour)).Find(&accounts)
   if len(accounts) > 0{
+    wg.Add(len(accounts))
     for _, account := range accounts{
       go func(){
         account.poll()
@@ -114,6 +117,4 @@ func main(){
 
     mainWG.Wait()
   }
-
-
 }
