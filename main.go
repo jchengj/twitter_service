@@ -58,23 +58,23 @@ func connection(t *Twitter) *anaconda.TwitterApi{
 }
 
 // --- pull messages from redis and send to twitter --- //
+// --- assuming the key looks like this - tweet:13213:1 //
 func send(){
   var wg sync.WaitGroup
 
   if tweets, err := rClient.Keys("*").Result(); err == nil {
-    accounts := make(map[int][]string)
+    accounts := make(map[string][]string)
 
     for _, tweet := range tweets{
-      var s string
-      strings.Split(s, ":")
-      accounts[int(s[2])] = append(accounts[int(s[2])], rClient.Get(tweet).Val())
+      s := strings.Split(tweet, ":")
+      accounts[s[2]] = append(accounts[s[2]], rClient.Get(tweet).Val())
     } 
 
     wg.Add(len(accounts))
     for key, val := range accounts{
       go func(){
         var account Twitter
-        db.Find(&account, int(key))
+        db.Find(&account, key)
         account.Send(&val)
         wg.Done()
       }()
@@ -109,9 +109,10 @@ func receive(){
 
 func main(){
   Info.Println("Starting Twitter Microservice")
-  mainWG.Add(2)
-
+  
   for {
+    mainWG.Add(2)
+    
     go send()
     go receive()
 
