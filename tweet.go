@@ -1,11 +1,11 @@
 package main
 
-import(
-  "github.com/jinzhu/gorm"
+import (
+	"github.com/jchengj/twitter_service/Godeps/_workspace/src/github.com/jinzhu/gorm"
 )
 
-type Tweet struct{
-  gorm.Model
-  Message     string
-  MessageId   int64
+type Tweet struct {
+	gorm.Model
+	Message   string
+	MessageId int64
 }
