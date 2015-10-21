@@ -34,7 +34,7 @@ func (twitter *Twitter) poll(){
       twitter.LastCheckedAt = time.Now()
 
       for _, tweet := range result{ 
-        fmt.Printf("Inserting [%d] message: %s", tweet.Id, tweet.Text)
+        Info.Printf("Inserting [%d] message: %s\n", tweet.Id, tweet.Text)
         db.Create(&Tweet{Message: tweet.Text, MessageId: tweet.Id})
       }
 
@@ -46,6 +46,7 @@ func (twitter *Twitter) poll(){
 func (twitter *Twitter) Send(values *[]string){
   api := connection(twitter)
   for _, v := range *values{
+    Info.Printf("Posting message [%s]", v)
     api.PostTweet(v, nil)
   }
 }

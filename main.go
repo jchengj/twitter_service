@@ -60,6 +60,7 @@ func connection(t *Twitter) *anaconda.TwitterApi{
 // --- pull messages from redis and send to twitter --- //
 // --- assuming the key looks like this - tweet:13213:1 //
 func send(){
+  Debug.Println("Send routine started")
   var wg sync.WaitGroup
 
   if tweets, err := rClient.Keys("*").Result(); err == nil {
@@ -84,11 +85,13 @@ func send(){
 
   }
   
+  Debug.Println("Receive routine ended")
   mainWG.Done()
 }
 
 // --- pull tweets from twitter and save to db --- //
 func receive(){
+  Debug.Println("Receive routine started")
   var wg sync.WaitGroup
 
   accounts := make([]Twitter, 1)
@@ -104,6 +107,7 @@ func receive(){
     wg.Wait()
   }
 
+  Debug.Println("Receive routine ended")
   mainWG.Done()
 }
 
@@ -112,7 +116,7 @@ func main(){
   
   for {
     mainWG.Add(2)
-    
+
     go send()
     go receive()
 
